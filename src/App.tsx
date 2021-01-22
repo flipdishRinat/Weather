@@ -1,4 +1,3 @@
-// import './App.css';
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import NavigationIcon from "@material-ui/icons/Navigation";
@@ -34,31 +33,6 @@ const useStyles = makeStyles((theme) => ({
       width: "auto",
     },
   },
-  searchIcon: {
-    padding: theme.spacing(0, 2),
-    height: "100%",
-    position: "absolute",
-    pointerEvents: "none",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  inputRoot: {
-    color: "inherit",
-  },
-  inputInput: {
-    padding: theme.spacing(1, 1, 1, 0),
-    // vertical padding + font size from searchIcon
-    paddingLeft: `calc(1em + ${theme.spacing(4)}px)`,
-    transition: theme.transitions.create("width"),
-    width: "100%",
-    [theme.breakpoints.up("sm")]: {
-      width: "12ch",
-      "&:focus": {
-        width: "20ch",
-      },
-    },
-  },
 }));
 
 function App() {
@@ -78,36 +52,35 @@ function App() {
   const [speed, setSpeed] = useState("");
   const [clouds, setClouds] = useState("");
 
-  const [open, setOpen] = React.useState(false);
-  const [options, setOptions] = React.useState([]);
+  const [open, setOpen] = useState(false);
+  const [options, setOptions] = useState([]);
   const loading = open && options.length === 0;
 
   const classes = useStyles();
 
+  // Part of navigator.geolocation.getCurrentPosition call
   var options1 = {
     enableHighAccuracy: true,
     timeout: 5000,
     maximumAge: 0,
   };
 
-  function success(pos:any) {
+  // Part of navigator.geolocation.getCurrentPosition call
+  function success(pos:{coords:{latitude:number, longitude:number, accuracy:number}}) {
     var crd = pos.coords;
-
-    console.log("Your current position is:");
-    console.log(`Latitude : ${crd.latitude}`);
-    console.log(`Longitude: ${crd.longitude}`);
-    console.log(`More or less ${crd.accuracy} meters.`);
-
     getWeather(crd.latitude, crd.longitude);
-
-    // console.log();
   }
 
-  // var responeOfWeather = "";
-  // var r = "";
+  // Part of navigator.geolocation.getCurrentPosition call
+  function error(err:any) {
+    console.warn(`ERROR(${err.code}): ${err.message}`);
+  }
 
-  const getWeather = async (lat:number, lon:number) => {
+  // Set up all hooks
+  async function getWeather   (lat:number, lon:number)  {
     try {
+      
+      // Get city name by coords
       const city = await axios.get(
         "https://us1.locationiq.com/v1/reverse.php?key=pk.0553826efdf551ac35bdf924d7996491&lat=" +
           lat +
@@ -115,13 +88,14 @@ function App() {
           lon +
           "&format=json"
       );
+      
+      // Clear prev data
       setOptions([]);
-      console.log(city.data.address.country);
+      
       setCountry(city.data.address.country);
-
-      console.log(city.data.address.locality || city.data.address.city);
       setCity((city.data.address.locality || city.data.address.city) + " | ");
 
+      // Get weather for our city
       const response = await axios.get(
         "https://api.openweathermap.org/data/2.5/onecall?lat=" +
           lat +
@@ -141,134 +115,57 @@ function App() {
       setTemp(response.data.current.temp.toFixed(0));
       setFeel(response.data.current.feels_like.toFixed(0));
       setDew(response.data.current.dew_point.toFixed(0));
-
       setDeg(response.data.current.wind_deg);
       setClouds(response.data.current.clouds);
       setSpeed(((response.data.current.wind_speed / 1000) * 3600).toFixed(0));
-
       setImg(
         `http://openweathermap.org/img/wn/` +
           response.data.current.weather[0].icon +
           `.png`
       );
       setAlt(response.data.current.weather[0].description);
-
       setDaily(response.data.daily);
       setHourly(response.data.hourly);
-
-      // console.log(response);
-
-      // console.log(new Date(response.data.current.dt * 1000));
-      // responeOfWeather = response;
-      // r = responeOfWeather.data.current.dt;
     } catch (e) {
       console.log(e);
     }
   };
-  function error(err:any) {
-    console.warn(`ERROR(${err.code}): ${err.message}`);
-  }
-
+  
+// Request current weather on load
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(success, error, options1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // const handleChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-  //   setFind(event.target.value);
-  //   if (event.target.value.length > 3) {
-  //     try {
-  //       const city = await axios.get(
-  //         `http://api.openweathermap.org/geo/1.0/direct?q=${event.target.value}&limit=7&appid=f0c85a8c7a8cf2de24a5653f555cd7e4`
-  //       );
-  //       console.log(city);
-  //     } catch (e) {
-  //       console.log(e);
-  //     }
-  //   }
-  // };
-
+  // Call from element when search city selected
   const selectedCity = (lat:number, lon:number) => {
     getWeather(lat, lon);
   };
 
+  // Request city list while typing
   const handleChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    
+    // Start search if over 3 chars typed
     if (event.target.value.length > 3) {
       try {
         const city = await fetch(
           `http://api.openweathermap.org/geo/1.0/direct?q=${event.target.value}&limit=7&appid=f0c85a8c7a8cf2de24a5653f555cd7e4`
         );
         const countries = await city.json();
-        console.log(countries);
-        // if (active) {
-        // setOptions(Object.keys(countries).map((key) => countries[key].item[0]));
         setOptions(countries);
-        // }
       } catch (e) {
         console.log(e);
       }
     }
   };
 
-  // const handleChange = async (string, results) => {
-  //   console.log(results);
-  //   if (string.length > 3) {
-  //     console.log(string);
-  //     try {
-  //       const city = await fetch(
-  //         `http://api.openweathermap.org/geo/1.0/direct?q=${string}&limit=7&appid=f0c85a8c7a8cf2de24a5653f555cd7e4`
-  //       );
-  //       const countries = await city.json();
-  //       // console.log(countries);
-  //       // if (active) {
-  //       // setOptions(Object.keys(countries).map((key) => countries[key].item[0]));
-  //       setOptions(countries);
-  //       // }
-  //     } catch (e) {
-  //       console.log(e);
-  //     }
-  //   }
-  // };
-
-  // const handleOnSearch = (string, results) => {
-  //   // onSearch will have as the first callback parameter
-  //   // the string searched and for the second the results.
-  //   // If useCached is true and results are are cached it
-  //   // returns cached results
-  //   console.log(string, results);
-  // };
-
-  // const handleOnSelect = (item) => {
-  //   // the item selected
-  //   console.log(item);
-  // };
-
-  // const handleOnFocus = () => {
-  //   console.log("Focused");
-  // };
-
   return (
     <div className={classes.root}>
       <Grid container spacing={1}>
         <Grid item xs={12} className={classes.search}>
-          {/* <select>
-            {options.map((item) => {
-              return <option value="0">Select car:</option>;
-            })}
-          </select> */}
-
-          {/* <div style={{ width: 400 }}>
-            <ReactSearchAutocomplete
-              items={options}
-              onSearch={handleChange}
-              onSelect={handleOnSelect}
-              onFocus={handleOnFocus}
-              autoFocus
-            />
-          </div> */}
           <Autocomplete
-            id="asynchronous-demo"
-            style={{ width: 300 }}
+            id="asynchronous"
+            style={{ width: 200 }}
             open={open}
             onOpen={() => {
               setOpen(true);
@@ -277,10 +174,7 @@ function App() {
               setOpen(false);
             }}
             getOptionSelected={(option:any, value:any) => {
-              if (option.name === value.name) {
-                console.log(option.name);
-                selectedCity(value.lat, value.lon);
-              }
+              (option.name === value.name) && selectedCity(value.lat, value.lon)
               return option.name === value.name;
             }}
             getOptionLabel={(option) =>
@@ -291,13 +185,11 @@ function App() {
               (option.state === undefined ? "" : option.state)
             }
             options={options}
-            // loading={loading}
             renderInput={(params) => (
               <TextField
                 {...params}
                 onChange={handleChange}
                 label="Search..."
-                // variant="elevation"
                 InputProps={{
                   ...params.InputProps,
                   endAdornment: (
@@ -313,17 +205,6 @@ function App() {
             )}
           />
 
-          {/* <Cities selectedCity={(lat, lon) => selectedCity(lat, lon)} /> */}
-          {/* <InputBase
-            placeholder="Search…"
-            classes={{
-              root: classes.inputRoot,
-              input: classes.inputInput,
-            }}
-            inputProps={{ "aria-label": "search" }}
-            value={find}
-            onChange={handleChange}
-          /> */}
         </Grid>
         <Grid item xs={12}>
           <Paper className={classes.paper}>
