@@ -66,20 +66,21 @@ function App() {
   };
 
   // Part of navigator.geolocation.getCurrentPosition call
-  function success(pos:{coords:{latitude:number, longitude:number, accuracy:number}}) {
+  function success(pos: {
+    coords: { latitude: number; longitude: number; accuracy: number };
+  }) {
     var crd = pos.coords;
     getWeather(crd.latitude, crd.longitude);
   }
 
   // Part of navigator.geolocation.getCurrentPosition call
-  function error(err:any) {
+  function error(err: any) {
     console.warn(`ERROR(${err.code}): ${err.message}`);
   }
 
   // Set up all hooks
-  async function getWeather   (lat:number, lon:number)  {
+  async function getWeather(lat: number, lon: number) {
     try {
-      
       // Get city name by coords
       const city = await axios.get(
         "https://us1.locationiq.com/v1/reverse.php?key=pk.0553826efdf551ac35bdf924d7996491&lat=" +
@@ -88,10 +89,10 @@ function App() {
           lon +
           "&format=json"
       );
-      
+
       // Clear prev data
       setOptions([]);
-      
+
       setCountry(city.data.address.country);
       setCity((city.data.address.locality || city.data.address.city) + " | ");
 
@@ -129,22 +130,21 @@ function App() {
     } catch (e) {
       console.log(e);
     }
-  };
-  
-// Request current weather on load
+  }
+
+  // Request current weather on load
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(success, error, options1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Call from element when search city selected
-  const selectedCity = (lat:number, lon:number) => {
+  const selectedCity = (lat: number, lon: number) => {
     getWeather(lat, lon);
   };
 
   // Request city list while typing
   const handleChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    
     // Start search if over 3 chars typed
     if (event.target.value.length > 3) {
       try {
@@ -173,8 +173,8 @@ function App() {
             onClose={() => {
               setOpen(false);
             }}
-            getOptionSelected={(option:any, value:any) => {
-              (option.name === value.name) && selectedCity(value.lat, value.lon)
+            getOptionSelected={(option: any, value: any) => {
+              option.name === value.name && selectedCity(value.lat, value.lon);
               return option.name === value.name;
             }}
             getOptionLabel={(option) =>
@@ -204,7 +204,6 @@ function App() {
               />
             )}
           />
-
         </Grid>
         <Grid item xs={12}>
           <Paper className={classes.paper}>
@@ -274,11 +273,13 @@ function App() {
           </Paper>
         </Grid>
 
-        {daily.slice(1).map((item:any) => {
+        {daily.slice(1).map((item: any) => {
           return (
             <Grid
               item
-              sm
+              md
+              sm={3}
+              xs={6}
               key={
                 new Date(item.dt * 1000).toString().slice(0, 3) +
                 item.weather[0].description +
@@ -340,7 +341,7 @@ function App() {
             flexFlow: "row nowrap",
           }}
         >
-          {hourly.map((item:any) => {
+          {hourly.map((item: any) => {
             return (
               <Grid
                 item
