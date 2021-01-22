@@ -120,7 +120,7 @@ function App() {
       setClouds(response.data.current.clouds);
       setSpeed(((response.data.current.wind_speed / 1000) * 3600).toFixed(0));
       setImg(
-        `http://openweathermap.org/img/wn/` +
+        `https://openweathermap.org/img/wn/` +
           response.data.current.weather[0].icon +
           `.png`
       );
@@ -149,7 +149,7 @@ function App() {
     if (event.target.value.length > 3) {
       try {
         const city = await fetch(
-          `http://api.openweathermap.org/geo/1.0/direct?q=${event.target.value}&limit=7&appid=f0c85a8c7a8cf2de24a5653f555cd7e4`
+          `https://api.openweathermap.org/geo/1.0/direct?q=${event.target.value}&limit=7&appid=f0c85a8c7a8cf2de24a5653f555cd7e4`
         );
         const countries = await city.json();
         setOptions(countries);
@@ -290,7 +290,7 @@ function App() {
                 <Typography variant="h3" component="h3">
                   <img
                     src={
-                      `http://openweathermap.org/img/wn/` +
+                      `https://openweathermap.org/img/wn/` +
                       item.weather[0].icon +
                       `.png`
                     }
@@ -357,7 +357,7 @@ function App() {
                   <Typography variant="h6" component="h6">
                     <img
                       src={
-                        `http://openweathermap.org/img/wn/` +
+                        `https://openweathermap.org/img/wn/` +
                         item.weather[0].icon +
                         `.png`
                       }
